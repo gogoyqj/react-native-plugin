@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.jsbundle
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+build/
+.gradle/
+local.properties
+*.iml
+.cocoapods/
