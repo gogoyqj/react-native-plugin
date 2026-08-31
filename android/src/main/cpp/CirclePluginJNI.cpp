@@ -1,35 +1,37 @@
 #include <jni.h>
 #include <android/log.h>
+#include <jsi/jsi.h>
 
-#include "../../../../cpp/CircleDrawer.h"
+#include "../../../../cpp/CircleJSI.h"
 
 #define TAG "CirclePlugin"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
+using namespace facebook;
 
 extern "C" {
 
-JNIEXPORT jbyteArray JNICALL
-Java_com_circleplugin_CirclePluginModule_nativeDrawCircle(
+/**
+ * Java_com_circleplugin_CirclePluginModule_nativeInstallJSI
+ *
+ * 从 Java 侧接收 JSI Runtime 指针，调用 C++ 安装 JSI 绑定。
+ * 命名规则: Java_包名_类名_方法名
+ */
+JNIEXPORT void JNICALL
+Java_com_circleplugin_CirclePluginModule_nativeInstallJSI(
     JNIEnv *env,
     jclass clazz,
-    jint radius,
-    jint color) {
+    jlong runtimePtr) {
 
-    LOGI("drawCircle: radius=%d, color=0x%08X", radius, color);
+    LOGI("Installing CircleJSI bindings");
 
-    auto result = circleplugin::drawCircle(radius, static_cast<uint32_t>(color));
+    // 将 jlong 转回 jsi::Runtime*
+    auto *runtime = reinterpret_cast<jsi::Runtime *>(runtimePtr);
 
-    jbyteArray jPixels = env->NewByteArray(result.pixels.size());
-    if (jPixels == nullptr) {
-        LOGE("Failed to allocate JNI byte array");
-        return nullptr;
-    }
+    // 调用 C++ 安装函数
+    circleplugin::installCircleJSI(*runtime);
 
-    env->SetByteArrayRegion(jPixels, 0, result.pixels.size(),
-                            reinterpret_cast<const jbyte *>(result.pixels.data()));
-
-    return jPixels;
+    LOGI("CircleJSI bindings installed successfully");
 }
 
 } // extern "C"

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, Text, Platform } from 'react-native';
-import CirclePlugin, { type CircleResult } from './NativeCirclePlugin';
+import { View, Image, StyleSheet, Text } from 'react-native';
+import { drawCircle, type CircleResult } from './NativeCirclePlugin';
 
 interface CircleViewProps {
   radius?: number;
@@ -12,15 +12,22 @@ export function CircleView({ radius = 64, color = 0xff0000ff }: CircleViewProps)
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    CirclePlugin.drawCircle(radius, color)
-      .then((result: CircleResult) => {
-        // RN Image can render base64 data URIs
-        setUri(`data:image/raw,${result.data}`);
-      })
-      .catch((e: Error) => {
-        setError(e.message);
-        console.error('CirclePlugin.drawCircle failed:', e);
-      });
+    try {
+      // 同步调用 JSI，无 bridge 开销
+      const result: CircleResult = drawCircle(radius, color);
+      const pixels = new Uint8Array(result.buffer);
+
+      // 转 base64 给 Image 组件
+      let binary = '';
+      for (let i = 0; i < pixels.length; i++) {
+        binary += String.fromCharCode(pixels[i]);
+      }
+      const base64 = globalThis.btoa(binary);
+      setUri(`data:image/raw,${base64}`);
+    } catch (e: any) {
+      setError(e.message);
+      console.error('CirclePlugin.drawCircle failed:', e);
+    }
   }, [radius, color]);
 
   if (error) {
@@ -59,4 +66,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CirclePlugin;
+export { drawCircle } from './NativeCirclePlugin';
+export type { CircleResult } from './NativeCirclePlugin';

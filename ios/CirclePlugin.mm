@@ -1,7 +1,8 @@
 #import "CirclePlugin.h"
-#import <React/RCTLog.h>
+#import <React/RCTBridge+Private.h>
+#import <React/RCTUtils.h>
 
-#include "../cpp/CircleDrawer.h"
+#include "../cpp/CircleJSI.h"
 
 @implementation CirclePlugin
 
@@ -11,42 +12,26 @@ RCT_EXPORT_MODULE();
   return NO;
 }
 
-/**
- * Draw a filled circle.
- * Returns { width, height, data: base64 string }
- */
-RCT_EXPORT_METHOD(drawCircle:(double)radius
-                  color:(double)color
-                  resolve:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject)
-{
-  @try {
-    int r = (int)radius;
-    uint32_t c = (uint32_t)color;
+- (void)setBridge:(RCTBridge *)bridge {
+  [super setBridge:bridge];
 
-    if (r <= 0 || r > 2048) {
-      reject(@"INVALID_RADIUS", @"radius must be between 1 and 2048", nil);
-      return;
-    }
+  // 等 bridge 初始化完成后注册 JSI 函数
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self installJSI];
+  });
+}
 
-    // Call C++ implementation
-    auto result = circleplugin::drawCircle(r, c);
-
-    // Convert pixel buffer to NSData
-    NSData *data = [NSData dataWithBytes:result.pixels.data()
-                                  length:result.pixels.size()];
-
-    // Return base64 encoded RGBA data
-    NSString *base64 = [data base64EncodedStringWithOptions:0];
-
-    resolve(@{
-      @"width": @(result.width),
-      @"height": @(result.height),
-      @"data": base64,
-    });
-  } @catch (NSException *exception) {
-    reject(@"CIRCLE_ERROR", exception.reason, nil);
+- (void)installJSI {
+  RCTCxxBridge *cxxBridge = (RCTCxxBridge *)self.bridge;
+  if (!cxxBridge || !cxxBridge.runtime) {
+    RCTLogError(@"CirclePlugin: JSI runtime not available");
+    return;
   }
+
+  jsi::Runtime *runtime = (jsi::Runtime *)cxxBridge.runtime;
+  circleplugin::installCircleJSI(*runtime);
+
+  RCTLogInfo(@"CirclePlugin: JSI bindings installed");
 }
 
 @end

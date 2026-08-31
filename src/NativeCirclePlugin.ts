@@ -1,27 +1,32 @@
-import { TurboModule, TurboModuleRegistry } from 'react-native';
+/**
+ * JSI 版本 — 同步调用，无 bridge 序列化开销。
+ *
+ * JSI 绑定的 __drawCircle 在 native 模块加载时注册到全局。
+ * 调用方式:
+ *   const result = __drawCircle(100, 0xFF0000FF)
+ *   const pixels = new Uint8Array(result.buffer)
+ */
 
 export interface CircleResult {
   width: number;
   height: number;
-  data: string; // base64 encoded RGBA pixels
+  buffer: ArrayBuffer;
 }
 
-export interface Spec extends TurboModule {
-  /**
-   * Draw a filled circle.
-   * @param radius  Circle radius in pixels (1-2048)
-   * @param color   Fill color as 0xRRGGBBAA (e.g. 0xFF0000FF for red)
-   * @returns       Promise with RGBA pixel data
-   */
-  drawCircle(radius: number, color: number): Promise<CircleResult>;
+/**
+ * 调用 C++ 绘制圆形（同步，通过 JSI）。
+ * 需要 native 模块已初始化。
+ */
+export function drawCircle(radius: number, color: number): CircleResult {
+  if (typeof globalThis.__drawCircle !== 'function') {
+    throw new Error(
+      'CirclePlugin JSI not initialized. Make sure the native module is linked.'
+    );
+  }
+  return globalThis.__drawCircle(radius, color) as CircleResult;
 }
 
-const CirclePlugin = TurboModuleRegistry.get<Spec>('CirclePlugin');
-
-if (!CirclePlugin) {
-  console.warn(
-    'CirclePlugin native module not found. Make sure the native module is linked.'
-  );
+// 类型声明
+declare global {
+  function __drawCircle(radius: number, color: number): CircleResult;
 }
-
-export default CirclePlugin as Spec;
