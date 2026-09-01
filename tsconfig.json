@@ -1,18 +1,23 @@
 {
   "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
     "target": "esnext",
     "module": "esnext",
     "lib": ["es2020"],
-    "jsx": "react-jsx",
+    "jsx": "react",
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
     "outDir": "dist",
-    "rootDir": "src"
+    "rootDir": "src",
+    "paths": {
+      "react": ["./example/node_modules/@types/react"],
+      "react-native": ["./example/node_modules/react-native"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "ios", "android", "cpp"]

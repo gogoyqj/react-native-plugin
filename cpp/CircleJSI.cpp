@@ -2,6 +2,16 @@
 
 using namespace facebook;
 
+// RN 0.73 没有 ArrayBuffer::createFromBytes，通过 MutableBuffer 包装
+class RawBuffer : public jsi::MutableBuffer {
+public:
+    RawBuffer(std::vector<uint8_t> data) : data_(std::move(data)) {}
+    uint8_t *data() override { return data_.data(); }
+    size_t size() const override { return data_.size(); }
+private:
+    std::vector<uint8_t> data_;
+};
+
 namespace circleplugin {
 
 void installCircleJSI(jsi::Runtime &runtime) {
@@ -30,11 +40,10 @@ void installCircleJSI(jsi::Runtime &runtime) {
       // 调用 C++ 实现
       auto result = drawCircle(radius, color);
 
-      // 创建 ArrayBuffer，拷贝像素数据
-      auto buffer = jsi::ArrayBuffer::createFromBytes(
+      // 创建 ArrayBuffer (RN 0.73 通过 MutableBuffer)
+      auto buffer = jsi::ArrayBuffer(
         rt,
-        result.pixels.data(),
-        result.pixels.size()
+        std::make_shared<RawBuffer>(std::move(result.pixels))
       );
 
       // 构造返回对象: { width, height, buffer }
@@ -47,7 +56,7 @@ void installCircleJSI(jsi::Runtime &runtime) {
     });
 
   // 注册到全局
-  rt.global().setProperty(runtime, "__drawCircle", std::move(drawCircleFunc));
+  runtime.global().setProperty(runtime, "__drawCircle", std::move(drawCircleFunc));
 }
 
 } // namespace circleplugin

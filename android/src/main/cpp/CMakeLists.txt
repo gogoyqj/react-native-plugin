@@ -4,21 +4,24 @@ project(circleplugin)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# C++ 源文件
+# React Native JSI 路径
+if(DEFINED REACT_NATIVE_DIR AND NOT REACT_NATIVE_DIR STREQUAL "")
+    set(JSI_DIR ${REACT_NATIVE_DIR}/ReactCommon/jsi)
+else()
+    set(JSI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../node_modules/react-native/ReactCommon/jsi)
+endif()
+
+# C++ 源文件 + JSI 源码 (避免链接 libjsi.so)
 add_library(circleplugin SHARED
     CirclePluginJNI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/CircleDrawer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/CircleJSI.cpp
+    ${JSI_DIR}/jsi/jsi.cpp
 )
 
 target_include_directories(circleplugin PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp
-)
-
-# React Native JSI 头文件路径
-# 实际项目中需要根据 node_modules 路径调整
-target_include_directories(circleplugin PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../node_modules/react-native/ReactCommon/jsi
+    ${JSI_DIR}
 )
 
 # Link Android log library

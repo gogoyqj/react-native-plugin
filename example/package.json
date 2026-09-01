@@ -1,0 +1,19 @@
+{
+  "name": "circle-plugin-example",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "android": "react-native run-android",
+    "ios": "react-native run-ios"
+  },
+  "dependencies": {
+    "@types/react": "18.2.0",
+    "react": "18.2.0",
+    "react-native": "0.73.11",
+    "react-native-circle-plugin": "link:.."
+  },
+  "devDependencies": {
+    "@react-native/metro-config": "^0.73.0"
+  }
+}

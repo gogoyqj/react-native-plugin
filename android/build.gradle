@@ -10,9 +10,26 @@ buildscript {
 
 apply plugin: 'com.android.library'
 
+// 查找 react-native 包路径
+def findReactNativeDir() {
+    // 作为 library 被消费时，node_modules 在上级目录
+    def candidates = [
+        file("${projectDir}/../node_modules/react-native"),
+        file("${rootDir}/node_modules/react-native"),
+        file("${rootDir}/../node_modules/react-native"),
+    ]
+    for (def dir : candidates) {
+        if (dir.exists()) return dir.absolutePath
+    }
+    return ""
+}
+
+def REACT_NATIVE_DIR = findReactNativeDir()
+
 android {
     namespace "com.circleplugin"
     compileSdkVersion 34
+    ndkVersion "27.1.12297006"
 
     defaultConfig {
         minSdkVersion 24
@@ -23,6 +40,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-std=c++17"
+                arguments "-DREACT_NATIVE_DIR=${REACT_NATIVE_DIR}"
             }
         }
     }
