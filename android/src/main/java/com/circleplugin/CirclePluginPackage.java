@@ -16,14 +16,11 @@ import java.util.List;
 
 public class CirclePluginPackage implements ReactPackage, JSIModulePackage {
 
-    private CirclePluginModule circleModule;
-
     @NonNull
     @Override
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
-        circleModule = new CirclePluginModule(reactContext);
         List<NativeModule> modules = new ArrayList<>();
-        modules.add(circleModule);
+        modules.add(new CirclePluginModule(reactContext));
         return modules;
     }
 
@@ -34,18 +31,15 @@ public class CirclePluginPackage implements ReactPackage, JSIModulePackage {
     }
 
     /**
-     * JSI 模块初始化 — 在 JS runtime 启动时调用。
-     * 这里安装 C++ JSI 绑定。
+     * TurboModule 注册 — 在 TurboModuleManager 初始化之后、JS 执行之前调用。
+     * 包装 __turboModuleProxy，注入 CirclePlugin TurboModule。
      */
     @Override
     public List<JSIModuleSpec> getJSIModules(
             ReactApplicationContext reactApplicationContext,
             JavaScriptContextHolder jsContext) {
 
-        // 获取 JSI Runtime 指针，传给 native 层
-        if (circleModule != null) {
-            circleModule.installJSI(jsContext.get());
-        }
+        CirclePluginModule.registerTurboModule(jsContext.get());
 
         return Collections.emptyList();
     }

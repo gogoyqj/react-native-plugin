@@ -15,7 +15,7 @@ endif()
 add_library(circleplugin SHARED
     CirclePluginJNI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/CircleDrawer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/CircleJSI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../cpp/CirclePluginTurboModule.cpp
     ${JSI_DIR}/jsi/jsi.cpp
 )
 

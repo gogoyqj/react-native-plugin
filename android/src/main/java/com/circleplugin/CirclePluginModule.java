@@ -10,8 +10,8 @@ public class CirclePluginModule extends ReactContextBaseJavaModule {
         System.loadLibrary("circleplugin");
     }
 
-    // JSI 安装函数 — 通过 JNI 调用 C++ 侧的 installCircleJSI
-    private static native void nativeInstallJSI(long runtimePtr);
+    // JNI: 注册 TurboModule 到 JS runtime
+    static native void nativeRegisterTurboModule(long runtimePtr);
 
     public CirclePluginModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -24,10 +24,10 @@ public class CirclePluginModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * 安装 JSI 绑定。
-     * 在 ReactHost 初始化时调用。
+     * 注册 TurboModule 到 JS runtime。
+     * 在 JSIModulePackage.getJSIModules() 时调用。
      */
-    public void installJSI(long runtimePtr) {
-        nativeInstallJSI(runtimePtr);
+    public static void registerTurboModule(long runtimePtr) {
+        nativeRegisterTurboModule(runtimePtr);
     }
 }
